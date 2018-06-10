@@ -6,8 +6,8 @@ const templates = require('./templates');
 const imageRegExp = new RegExp(process.env.image_regexp);
 const docker = new Docker();
 const slack = new Slack({
-  username: 'docker',
-  iconEmoji: ':whale:',
+  'username': 'docker',
+  'iconEmoji': ':whale:'
 });
 
 async function sendEvent(event) {
@@ -39,8 +39,29 @@ async function sendEventStream() {
 
 async function sendVersion() {
   const version = await docker.version();
+  let hostname_string = '';
+  if (process.env.include_hostname) {
+
+    const dockerInfo = await docker.info();
+    const nodeHostname = dockerInfo.Name;
+    const worker = !dockerInfo.Swarm.ControlAvailable;
+    let swarmMode = false;
+    if (dockerInfo.Swarm.NodeID) {
+      swarmMode = true;
+    }
+
+    hostname_string = `Node @ ${nodeHostname}`;
+    if (swarmMode) {
+      if ( worker ) {
+        hostname_string += ' (Swarm Worker)';
+      } else {
+        hostname_string += ' (Swarm Manager)';
+      }
+    }
+
+  }
   await slack.sendAttachment({
-    text: 'Docker is running',
+    text: `Docker is running: ${hostname_string}`,
     color: 'good',
     fields: Seq(version).map((value, title) => ({title, value, short: true})).toArray(),
   });
@@ -57,3 +78,4 @@ function handleError(e) {
 }
 
 main().catch(handleError);
+
