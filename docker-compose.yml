@@ -5,7 +5,7 @@ services:
     image: shadowkrusha/docker-slack
     environment:
       # Adjust as required
-      webhook: https://hooks.slack.com/#######
+      webhook: https://hooks.slack.com/########
       include_hostname: 1
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
